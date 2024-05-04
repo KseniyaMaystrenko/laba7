@@ -24,6 +24,6 @@
 
 ## используемые источники
 
-[Фреймворк Kivy](https://youtu.be/VIy3hktYKwE?feature=shared)
-[Вывод виджетов](https://youtu.be/n0nyKIL6M-0?feature=shared)
+[Фреймворк Kivy](https://youtu.be/VIy3hktYKwE?feature=shared) ,
+[Вывод виджетов](https://youtu.be/n0nyKIL6M-0?feature=shared) ,
 [Пишем калькулятор](https://youtu.be/Ngs1k-gVFY4?feature=shared)
