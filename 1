@@ -1,0 +1,228 @@
+from kivy.app import App  # Импорт класса для создания приложения Kivy
+from kivy.uix.gridlayout import GridLayout  # Импорт класса для создания сетки интерфейса
+from kivy.uix.label import Label  # Импорт класса для создания меток
+from kivy.uix.dropdown import DropDown  # Импорт класса для создания выпадающего списка
+from kivy.uix.textinput import TextInput  # Импорт класса для создания поля ввода текста
+from kivy.uix.button import Button  # Импорт класса для создания кнопок
+from abc import ABC, abstractmethod  # Импорт модуля ABC и декоратора abstractmethod
+from docx import Document  # Импорт класса для работы с документами Word
+import math  # Импорт модуля для математических операций
+
+
+class Calculator(ABC):  # Создание абстрактного класса Calculator
+    @abstractmethod
+    def calculate(self, instance):  # Определение абстрактного метода calculate
+        pass
+
+
+class GeometryCalcApp(App,
+                      Calculator):  # Создание класса GeometryCalcApp, который наследует от классов App и Calculator
+
+    def __str__(
+            self):  # метод __str__, который будет возвращать строковое представление объекта класса GeometryCalcApp.
+        # Этот метод будет полезен для вывода информации о объекте в более понятном формате при необходимости.
+        return f"GeometryCalcApp - выбранная фигура: {self.shape_button.text}, выбранный материал: {self.material_button.text}"
+
+    def __repr__(self):  # етод __repr__, который будет возвращать "официальное" строковое представление объекта
+        # класса GeometryCalcApp. Это может быть полезно для отладки или вывода объекта в средах, где требуется
+        # точное представление объекта.
+        return f"GeometryCalcApp(shape={self.shape_button.text}, material={self.material_button.text})"
+
+    def build(self):  # Определение метода build для построения интерфейса
+        layout = GridLayout(cols=2, row_force_default=True,  # Создание сетки интерфейса с 2 колонками
+                            row_default_height=30)  # Настройка высоты строк
+
+        # Создание метки для выбора типа фигуры
+        shape_label = Label(text="Выберите тип фигуры:")
+
+        # Создание выпадающего списка для выбора типа фигуры
+        self.shape_dropdown = DropDown()
+
+        # Создание кнопки для выбора типа фигуры и привязка к выпадающему списку
+        self.shape_button = Button(text='Параллелепипед')
+
+        # Привязка открытия выпадающего списка к нажатию на кнопку
+        self.shape_button.bind(on_release=self.shape_dropdown.open)
+
+        # Привязка выбора пункта списка к изменению текста на кнопке
+        self.shape_dropdown.bind(on_select=lambda instance, x: setattr(self.shape_button, 'text', x))
+
+        shape_items = ['Параллелепипед', 'Тетраэдр', 'Шар']
+
+        # Добавление пунктов в выпадающий список
+        for item in shape_items:
+            btn = Button(text=item, size_hint_y=None, height=44)
+            btn.bind(on_release=lambda btn: self.on_shape_select(btn.text))
+            self.shape_dropdown.add_widget(btn)
+
+        layout.add_widget(shape_label)  # Добавление метки для выбора типа фигуры в сетку
+        layout.add_widget(self.shape_button)  # Добавление кнопки выбора типа фигуры в сетку
+
+        # Создание метки и выпадающего списка для выбора материала
+        self.material_label = Label(text="Выберите материал для расчетов:")
+        self.material_dropdown = DropDown()
+        self.material_button = Button(text='Дерево')
+
+        # Привязка открытия выпадающего списка к нажатию на кнопку
+        self.material_button.bind(on_release=self.material_dropdown.open)
+
+        # Привязка выбора пункта списка к изменению текста на кнопке
+        self.material_dropdown.bind(on_select=lambda instance, x: setattr(self.material_button, 'text', x))
+
+        material_items = ['Дерево', 'Металл', 'Пластик']
+
+        # Добавление пунктов в выпадающий список
+        for item in material_items:
+            btn = Button(text=item, size_hint_y=None, height=44)
+            btn.bind(on_release=lambda btn: self.material_dropdown.select(btn.text))
+            self.material_dropdown.add_widget(btn)
+
+        layout.add_widget(self.material_label)  # Добавление метки для выбора материала в сетку
+        layout.add_widget(self.material_button)  # Добавление кнопки выбора материала в сетку
+
+        # Создание полей ввода для размеров фигуры
+        self.length_label = Label(text="Введите Длину:")
+        self.length_input = TextInput(text='0', hint_text="Длина")
+        self.height_label = Label(text="Введите Высоту:")
+        self.height_input = TextInput(text='0', hint_text="Высота")
+        self.width_label = Label(text="Введите Ширину:")
+        self.width_input = TextInput(text='0', hint_text="Ширина")
+
+        # Добавление полей ввода в сетку
+        layout.add_widget(self.length_label)
+        layout.add_widget(self.length_input)
+        layout.add_widget(self.height_label)
+        layout.add_widget(self.height_input)
+        layout.add_widget(self.width_label)
+        layout.add_widget(self.width_input)
+
+        # Создание кнопки для расчета и привязка к методу calculate
+        calculate_label = Label(text="")
+        calculate_button = Button(text="Рассчитать")
+        calculate_button.bind(on_press=self.calculate)
+
+        # Добавление кнопки для расчета в сетку
+        layout.add_widget(calculate_label)
+        layout.add_widget(calculate_button)
+
+        # Создание меток для результатов расчетов
+        self.result_label = Label(text="Результаты:")
+        self.volume_label = Label(text="Объем:")
+        surface_area_void = Label(text="")
+        self.surface_area_label = Label(text="Площадь поверхности:")
+        mass_void = Label(text="")
+        self.mass_label = Label(text="Масса:")
+
+        # Добавление меток для результатов в сетку
+        layout.add_widget(self.result_label)
+        layout.add_widget(self.volume_label)
+        layout.add_widget(surface_area_void)
+        layout.add_widget(self.surface_area_label)
+        layout.add_widget(mass_void)
+        layout.add_widget(self.mass_label)
+
+        return layout  # Возвращение сетки интерфейса
+
+    # Определение метода обработки выбора фигуры
+    def on_shape_select(self, shape):
+        if shape == 'Шар':
+            # Если выбрана фигура "Шар"
+            self.length_label.text = 'Введите Радиус:'
+            self.height_label.opacity = 0
+            self.height_input.opacity = 0
+            self.width_label.opacity = 0
+            self.width_input.opacity = 0
+            self.shape_button.text = 'Шар'
+
+        elif shape == 'Тетраэдр':
+            # Если выбрана фигура "Тетраэдр"
+            self.length_label.text = 'Введите Длину Стороны:'
+            self.height_label.opacity = 0
+            self.height_input.opacity = 0
+            self.width_label.opacity = 0
+            self.width_input.opacity = 0
+            self.shape_button.text = 'Тетраэдр'
+        else:
+            # Если выбрана фигура "Параллелепипед"
+            self.length_label.text = 'Введите Длину:'
+            self.height_label.opacity = 1
+            self.height_input.opacity = 1
+            self.width_label.opacity = 1
+            self.width_input.opacity = 1
+            self.shape_button.text = 'Параллелепипед'
+
+        self.shape_dropdown.dismiss()  # Закрываем выпадающий список после выбора фигуры
+
+    # Определение метода сохранения результатов в файл docx
+    def save_to_docx(self, volume, surface_area, mass):
+        doc = Document()  # Создаем новый документ
+        doc.add_paragraph("Результаты расчетов:")  # Добавляем заголовок
+        doc.add_paragraph(f"Объем: {volume:.2f}")  # Добавляем информацию об объеме
+        doc.add_paragraph(f"Площадь поверхности: {surface_area:.2f}")  # Добавляем информацию о площади поверхности
+        doc.add_paragraph(f"Масса: {mass:.2f}")  # Добавляем информацию о массе
+        doc.save("report.docx")  # Сохраняем документ в файл report.docx
+
+    # Определение метода расчета параметров фигуры и массы
+    def calculate(self, instance):
+        # Получение значений из полей ввода и выбранного материала
+        height = float(self.height_input.text)
+        width = float(self.width_input.text)
+        length = float(self.length_input.text)
+        material = self.material_button.text
+
+        # Расчет объема, площади поверхности и массы в зависимости от выбранной фигуры и материала
+        if self.shape_button.text == 'Параллелепипед':
+            volume = height * width * length
+            surface_area = 2 * (height * width + width * length + length * height)
+        elif self.shape_button.text == 'Тетраэдр':
+            volume = (math.sqrt(2) / 12) * length ** 3
+            surface_area = math.sqrt(3) * length ** 2
+        elif self.shape_button.text == 'Шар':
+            volume = (4 / 3) * math.pi * (length / 2) ** 3
+            surface_area = 4 * math.pi * (length / 2) ** 2
+
+        # Расчет массы в зависимости от выбранного материала
+        if material == 'Дерево':
+            density = 700  # Плотность дерева в кг/м^3
+        elif material == 'Металл':
+            density = 8000  # Плотность металла в кг/м^3
+        elif material == 'Пластик':
+            density = 1000  # Плотность пластика в кг/м^3
+        else:
+            density = 1000  # Значение по умолчанию
+
+        mass = volume * density
+
+        # Обновление меток с результатами
+        self.volume_label.text = f"Объем: {volume:.2f} куб. м"
+        self.surface_area_label.text = f"Площадь поверхности: {surface_area:.2f} кв. м"
+        self.mass_label.text = f"Масса: {mass:.2f} кг"
+        print(str(app))
+        print(repr(app),'\n')
+        self.save_to_docx(volume, surface_area, mass)  # Сохранение результатов в файл docx
+
+
+
+# Запуск приложения
+if __name__ == '__main__':
+    app = GeometryCalcApp()
+    app.run()
+
+
+# В этой программе нет явного использования атрибутов с управляемыми свойствами (managed attributes),
+# таких как property в Python. Однако, можно выделить несколько мест, где используются свойства для управления
+# видимостью и текстом некоторых виджетов.
+#
+# shape_button.text и material_button.text: Оба этих атрибута являются управляемыми свойствами кнопок,
+# которые обновляются в зависимости от выбора пользователя.
+#
+# В методе on_shape_select изменяется текст метки и видимость полей ввода в зависимости от выбранной фигуры.
+# Например, self.length_label.text и self.height_label.opacity - это управляемые свойства, которые изменяются в
+# зависимости от выбора пользователя.
+#
+# self.volume_label.text, self.surface_area_label.text и self.mass_label.text: Эти метки обновляются с результатами
+# расчетов и являются управляемыми свойствами, которые изменяются при вызове метода calculate.
+#
+# Хотя в программе нет явного использования декоратора @property, она использует управляемые свойства для
+# динамического обновления текста и видимости различных элементов пользовательского интерфейса в зависимости от
+# действий пользователя и результатов расчетов.
