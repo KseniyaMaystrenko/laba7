@@ -14,6 +14,15 @@ class Calculator(ABC):  # Создание абстрактного класса
     def calculate(self, instance):  # Определение абстрактного метода calculate
         pass
 
+    def __call__(self, instance):
+        # Вызов метода calculate и получение результатов
+        volume, surface_area, mass = self.calculate(instance)
+
+        # Вывод результатов на консоль
+        print(f"Объем: {volume:.2f} куб. м")
+        print(f"Площадь поверхности: {surface_area:.2f} кв. м")
+        print(f"Масса: {mass:.2f} кг\n")
+
 
 class GeometryCalcApp(App,
                       Calculator):  # Создание класса GeometryCalcApp, который наследует от классов App и Calculator
@@ -99,7 +108,7 @@ class GeometryCalcApp(App,
         # Создание кнопки для расчета и привязка к методу calculate
         calculate_label = Label(text="")
         calculate_button = Button(text="Рассчитать")
-        calculate_button.bind(on_press=self.calculate)
+        calculate_button.bind(on_press=self)
 
         # Добавление кнопки для расчета в сетку
         layout.add_widget(calculate_label)
@@ -198,31 +207,11 @@ class GeometryCalcApp(App,
         self.surface_area_label.text = f"Площадь поверхности: {surface_area:.2f} кв. м"
         self.mass_label.text = f"Масса: {mass:.2f} кг"
         print(str(app))
-        print(repr(app),'\n')
+        print(repr(app))
         self.save_to_docx(volume, surface_area, mass)  # Сохранение результатов в файл docx
-
-
+        return volume, surface_area, mass
 
 # Запуск приложения
 if __name__ == '__main__':
     app = GeometryCalcApp()
     app.run()
-
-
-# В этой программе нет явного использования атрибутов с управляемыми свойствами (managed attributes),
-# таких как property в Python. Однако, можно выделить несколько мест, где используются свойства для управления
-# видимостью и текстом некоторых виджетов.
-#
-# shape_button.text и material_button.text: Оба этих атрибута являются управляемыми свойствами кнопок,
-# которые обновляются в зависимости от выбора пользователя.
-#
-# В методе on_shape_select изменяется текст метки и видимость полей ввода в зависимости от выбранной фигуры.
-# Например, self.length_label.text и self.height_label.opacity - это управляемые свойства, которые изменяются в
-# зависимости от выбора пользователя.
-#
-# self.volume_label.text, self.surface_area_label.text и self.mass_label.text: Эти метки обновляются с результатами
-# расчетов и являются управляемыми свойствами, которые изменяются при вызове метода calculate.
-#
-# Хотя в программе нет явного использования декоратора @property, она использует управляемые свойства для
-# динамического обновления текста и видимости различных элементов пользовательского интерфейса в зависимости от
-# действий пользователя и результатов расчетов.
