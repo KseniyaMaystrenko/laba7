@@ -32,7 +32,7 @@ class GeometryCalcApp(App,
         # Этот метод будет полезен для вывода информации о объекте в более понятном формате при необходимости.
         return f"GeometryCalcApp - выбранная фигура: {self.shape_button.text}, выбранный материал: {self.material_button.text}"
 
-    def __repr__(self):  # етод __repr__, который будет возвращать "официальное" строковое представление объекта
+    def __repr__(self):  # етод __repr__, который будет возвращать строковое представление объекта
         # класса GeometryCalcApp. Это может быть полезно для отладки или вывода объекта в средах, где требуется
         # точное представление объекта.
         return f"GeometryCalcApp(shape={self.shape_button.text}, material={self.material_button.text})"
